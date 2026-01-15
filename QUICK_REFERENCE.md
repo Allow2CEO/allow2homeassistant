@@ -6,6 +6,10 @@
 
 A **native Home Assistant custom integration** that provides parental controls using the Allow2 API. Runs entirely within Home Assistant - no external dependencies.
 
+**Integration Domain**: `allow2`
+**GitHub Repository**: `allow2/homeassistant` or `allow2-homeassistant`
+**Service Calls**: `allow2.check_quota`, `allow2.log_activity`
+
 ### When to Use?
 
 ✅ **Use allow2homeassistant if:**

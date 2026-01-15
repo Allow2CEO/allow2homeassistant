@@ -47,6 +47,15 @@ This integration is the **inverse** of `allow2automate-homeassistant`:
 - **Multiple Children**: Support for multiple child profiles
 - **Activity Logging**: Automatic usage logging to Allow2
 
+## Integration Details
+
+- **Domain**: `allow2`
+- **Display Name**: "Allow2"
+- **Repository**: `allow2/homeassistant` (GitHub)
+- **HACS Name**: "Allow2 Parental Controls"
+- **Service Calls**: `allow2.check_quota`, `allow2.log_activity`
+- **Entity Prefix**: `sensor.allow2_*`, `binary_sensor.allow2_*`
+
 ## Quick Start
 
 ```yaml

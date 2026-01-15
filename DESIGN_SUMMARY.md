@@ -4,6 +4,11 @@
 
 **allow2homeassistant** is a native Home Assistant custom integration that provides parental controls using the Allow2 API. It runs entirely within Home Assistant and is the **inverse** of the existing `allow2automate-homeassistant` plugin.
 
+**Integration Domain**: `allow2`
+**Display Name**: "Allow2"
+**Repository**: `allow2/homeassistant` (recommended)
+**HACS Name**: "Allow2 Parental Controls"
+
 ## Key Differentiators
 
 ### allow2homeassistant vs. allow2automate-homeassistant
