@@ -6,17 +6,15 @@ on:
     branches:
       - main
       - master
+    tags:
+      - 'v*.*.*'
   pull_request:
     branches:
       - main
       - master
-  release:
-    types:
-      - published
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   information:
@@ -24,8 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      image_name: ${{ steps.info.outputs.image_name }}
       build_date: ${{ steps.info.outputs.build_date }}
       architectures: ${{ steps.info.outputs.architectures }}
+      is_release: ${{ steps.version.outputs.is_release }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,22 +33,23 @@ jobs:
       - name: Get version
         id: version
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/}"
-            VERSION="${VERSION#v}"
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event_name }}" == "release" ]]; then
-            VERSION="${{ github.event.release.tag_name }}"
-            VERSION="${VERSION#v}"
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "is_release=true" >> $GITHUB_OUTPUT
           else
             echo "version=dev" >> $GITHUB_OUTPUT
+            echo "is_release=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Get build information
         id: info
         run: |
           echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+          # IMPORTANT: Convert repository name to lowercase for Docker
+          IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
           # Extract architectures from config.yaml
           ARCHS=$(python3 -c "
@@ -117,6 +118,20 @@ jobs:
             i386)    echo "platform=linux/386" >> $GITHUB_OUTPUT ;;
           esac
 
+      - name: Determine Docker tags
+        id: tags
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ needs.information.outputs.image_name }}/${{ matrix.arch }}"
+          VERSION="${{ needs.information.outputs.version }}"
+
+          if [[ "${{ needs.information.outputs.is_release }}" == "true" ]]; then
+            # For releases: version tag + latest
+            echo "tags=${IMAGE}:${VERSION},${IMAGE}:latest" >> $GITHUB_OUTPUT
+          else
+            # For dev builds: dev tag only
+            echo "tags=${IMAGE}:dev" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Add-on image
         uses: docker/build-push-action@v5
         with:
@@ -124,9 +139,7 @@ jobs:
           file: ./Dockerfile
           platforms: ${{ steps.platform.outputs.platform }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.arch }}:${{ needs.information.outputs.version }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.arch }}:latest
+          tags: ${{ steps.tags.outputs.tags }}
           labels: |
             org.opencontainers.image.title=Allow2 for Home Assistant
             org.opencontainers.image.description=Parental controls integration with Allow2 service
@@ -184,7 +197,7 @@ jobs:
           args: |
             --${{ matrix.arch }} \
             --target /data \
-            --image "${{ env.IMAGE_NAME }}/{arch}" \
+            --image "${{ needs.information.outputs.image_name }}/{arch}" \
             --docker-hub "${{ env.REGISTRY }}" \
             --version "${{ needs.information.outputs.version }}"
 
@@ -194,7 +207,7 @@ jobs:
       - information
       - build-addon
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -208,12 +221,13 @@ jobs:
 
       - name: Tag edge builds
         run: |
+          IMAGE_NAME="${{ needs.information.outputs.image_name }}"
           ARCHS="amd64 armv7 aarch64 armhf i386"
           for arch in $ARCHS; do
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${arch}:${{ needs.information.outputs.version }} || continue
-            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${arch}:${{ needs.information.outputs.version }} \
-                       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${arch}:edge
-            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${arch}:edge
+            docker pull ${{ env.REGISTRY }}/${IMAGE_NAME}/${arch}:dev || continue
+            docker tag ${{ env.REGISTRY }}/${IMAGE_NAME}/${arch}:dev \
+                       ${{ env.REGISTRY }}/${IMAGE_NAME}/${arch}:edge
+            docker push ${{ env.REGISTRY }}/${IMAGE_NAME}/${arch}:edge
           done
 
   release-assets:
@@ -222,7 +236,7 @@ jobs:
       - information
       - build-addon
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: needs.information.outputs.is_release == 'true'
     permissions:
       contents: write
     steps:
@@ -239,19 +253,34 @@ jobs:
             -x "allow2/__pycache__/*" \
             -x "allow2/*.pyc"
 
-      - name: Upload release asset
+          # Also create a tar.gz
+          tar --exclude='__pycache__' \
+              --exclude='*.pyc' \
+              -czvf "../allow2-${VERSION}.tar.gz" allow2
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             allow2-custom-component-${{ needs.information.outputs.version }}.zip
+            allow2-${{ needs.information.outputs.version }}.tar.gz
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update version in config.yaml
+      - name: Print release info
         run: |
+          VERSION="${{ needs.information.outputs.version }}"
+          IMAGE_NAME="${{ needs.information.outputs.image_name }}"
+          echo "=== Release v${VERSION} published ==="
+          echo ""
           echo "Add-on images published to:"
-          echo "  ghcr.io/${{ env.IMAGE_NAME }}/amd64:${{ needs.information.outputs.version }}"
-          echo "  ghcr.io/${{ env.IMAGE_NAME }}/aarch64:${{ needs.information.outputs.version }}"
-          echo "  ghcr.io/${{ env.IMAGE_NAME }}/armv7:${{ needs.information.outputs.version }}"
-          echo "  ghcr.io/${{ env.IMAGE_NAME }}/armhf:${{ needs.information.outputs.version }}"
-          echo "  ghcr.io/${{ env.IMAGE_NAME }}/i386:${{ needs.information.outputs.version }}"
+          echo "  ghcr.io/${IMAGE_NAME}/amd64:${VERSION}"
+          echo "  ghcr.io/${IMAGE_NAME}/aarch64:${VERSION}"
+          echo "  ghcr.io/${IMAGE_NAME}/armv7:${VERSION}"
+          echo "  ghcr.io/${IMAGE_NAME}/armhf:${VERSION}"
+          echo "  ghcr.io/${IMAGE_NAME}/i386:${VERSION}"
+          echo ""
+          echo "Custom component downloads:"
+          echo "  ZIP: https://github.com/${{ github.repository }}/releases/download/v${VERSION}/allow2-custom-component-${VERSION}.zip"
+          echo "  TAR.GZ: https://github.com/${{ github.repository }}/releases/download/v${VERSION}/allow2-${VERSION}.tar.gz"
