@@ -198,7 +198,7 @@ class Allow2API:
         except ClientError as err:
             _LOGGER.error("Connection error during pairing: %s", err)
             raise Allow2ConnectionError(str(err)) from err
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             _LOGGER.error("Timeout during pairing")
             raise Allow2ConnectionError("Request timed out") from err
 
@@ -280,7 +280,7 @@ class Allow2API:
         except ClientError as err:
             _LOGGER.error("Connection error during check: %s", err)
             raise Allow2ConnectionError(str(err)) from err
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             _LOGGER.error("Timeout during check")
             raise Allow2ConnectionError("Request timed out") from err
 
@@ -391,6 +391,6 @@ class Allow2API:
 
                 return children
 
-        except (ClientError, asyncio.TimeoutError) as err:
+        except (ClientError, TimeoutError) as err:
             _LOGGER.error("Error getting children: %s", err)
             raise Allow2ConnectionError(str(err)) from err
