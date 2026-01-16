@@ -1,7 +1,7 @@
 # Allow2 Home Assistant Integration
 
-[![GitHub Release](https://img.shields.io/github/v/release/Allow2/allow2homeassistant?style=flat-square)](https://github.com/Allow2/allow2homeassistant/releases)
-[![License](https://img.shields.io/github/license/Allow2/allow2homeassistant?style=flat-square)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/Allow2CEO/allow2homeassistant?style=flat-square)](https://github.com/Allow2CEO/allow2homeassistant/releases)
+[![License](https://img.shields.io/github/license/Allow2CEO/allow2homeassistant?style=flat-square)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1+-blue?style=flat-square)](https://www.home-assistant.io/)
 
 A Home Assistant custom integration that brings Allow2 parental controls to your smart home, enabling powerful automations based on your children's screen time quotas and activity permissions.
@@ -12,7 +12,7 @@ A Home Assistant custom integration that brings Allow2 parental controls to your
 
 Or manually add this repository URL to HACS:
 ```
-https://github.com/Allow2/allow2homeassistant
+https://github.com/Allow2CEO/allow2homeassistant
 ```
 
 ## Features
@@ -42,13 +42,13 @@ https://github.com/Allow2/allow2homeassistant
 1. Open HACS in your Home Assistant instance
 2. Click the three dots in the top right corner
 3. Select "Custom repositories"
-4. Add `https://github.com/Allow2/allow2homeassistant` with category "Integration"
+4. Add `https://github.com/Allow2CEO/allow2homeassistant` with category "Integration"
 5. Click "Download" on the Allow2 integration
 6. Restart Home Assistant
 
 ### Manual Installation
 
-1. Download the latest release from [GitHub](https://github.com/Allow2/allow2homeassistant/releases)
+1. Download the latest release from [GitHub](https://github.com/Allow2CEO/allow2homeassistant/releases)
 2. Extract and copy the `custom_components/allow2` folder to your Home Assistant `custom_components` directory
 3. Restart Home Assistant
 
@@ -108,7 +108,7 @@ automation:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/Allow2/allow2homeassistant/issues)
+- **Issues**: [GitHub Issues](https://github.com/Allow2CEO/allow2homeassistant/issues)
 - **Allow2 Help**: [Allow2 Support](https://allow2.com/support)
 - **Community**: [Home Assistant Community Forum](https://community.home-assistant.io/)
 
