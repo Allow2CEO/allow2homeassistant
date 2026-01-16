@@ -259,7 +259,7 @@ jobs:
               -czvf "../allow2-${VERSION}.tar.gz" allow2
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             allow2-custom-component-${{ needs.information.outputs.version }}.zip
