@@ -1,0 +1,52 @@
+---
+version: 2
+
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    reviewers:
+      - "Allow2/maintainers"
+    open-pull-requests-limit: 5
+
+  # Maintain Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+      - "python"
+    reviewers:
+      - "Allow2/maintainers"
+    open-pull-requests-limit: 5
+    ignore:
+      # Ignore major version updates for Home Assistant core
+      - dependency-name: "homeassistant"
+        update-types: ["version-update:semver-major"]
+
+  # Maintain Docker dependencies if Dockerfile exists
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "docker"
+    labels:
+      - "dependencies"
+      - "docker"
+    reviewers:
+      - "Allow2/maintainers"
+    open-pull-requests-limit: 3

@@ -90,10 +90,10 @@ async def async_setup_entry(hass, entry):
 - Handle reconfiguration
 
 **User Input**:
-- API Key (from Allow2 parent account)
-- Optional: Update interval
-- Optional: Cache duration
-- Optional: Default device names
+- Email (Allow2 parent account)
+- Password (Allow2 parent account)
+- Optional: Device Name (how this HA appears in Allow2)
+- Optional: Device Token (advanced users only)
 
 **Flow**:
 ```
@@ -101,11 +101,11 @@ User installs integration
   ↓
 Config Flow UI appears
   ↓
-User enters API key
+User enters email and password
   ↓
-Integration validates with Allow2 API
+Integration pairs with Allow2 account
   ↓
-Success: Integration configured
+Pairing tokens stored (credentials discarded)
   ↓
 Services available for use
 ```
@@ -124,8 +124,8 @@ Services available for use
 **Key Methods**:
 ```python
 class Allow2API:
-    async def authenticate(self):
-        """Authenticate with Allow2 API using API key."""
+    async def pair_device(self, email, password, device_name):
+        """Pair device with Allow2 account (one-time operation)."""
 
     async def check_quota(self, child_id, activity, device_id):
         """Check if child has quota remaining for activity."""
@@ -137,9 +137,9 @@ class Allow2API:
         """Get list of children for this account."""
 ```
 
-**API Endpoints** (based on allow2nodered):
-- `POST /serviceapi/checkRequest` - Check quota and get status
-- `POST /serviceapi/logActivity` - Record usage time
+**API Endpoints** (Device Pairing Mode):
+- `POST /api/pairDevice` - Pair device to Allow2 account
+- `POST /serviceapi/check` - Check quota and get status (NOT `/serviceapi/checkRequest`)
 
 ### 4. Data Update Coordinator
 
@@ -366,20 +366,20 @@ script:
 
 ## Security Considerations
 
-### API Key Storage
-- Stored in Home Assistant's config entry (encrypted)
-- Never logged or exposed in UI
-- Separate from Home Assistant authentication
+### Credential Handling
+- **Credentials NOT stored** - Email and password only used during initial pairing
+- **Pairing tokens stored** - `userId`, `pairId`, `pairToken` stored in Home Assistant's config entry (encrypted)
+- **Tokens not exposed** - Never logged or exposed in UI
 
 ### Communication
 - All API calls over HTTPS
-- API key in header (not URL)
+- Pairing tokens in request body
 - No sensitive child data transmitted
 
 ### Access Control
 - Services require Home Assistant authentication
 - Config flow requires admin privileges
-- API key can't be read through services
+- Pairing tokens can't be read through services
 
 ## Performance Considerations
 

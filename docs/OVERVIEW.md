@@ -174,7 +174,7 @@ The integration shares with Allow2:
 - Specific media titles
 
 ### Security
-- API key stored securely in Home Assistant
+- Pairing tokens stored securely in Home Assistant (credentials are NOT stored)
 - Communication over HTTPS
 - No personal child information sent to Allow2
 - Optional local quota caching
@@ -206,5 +206,5 @@ With native Home Assistant integration, future features could include:
 
 Ready to get started? Check out:
 - [Installation Guide](INSTALLATION.md) - Install the integration
-- [Configuration Guide](CONFIGURATION.md) - Set up Allow2 API credentials
+- [Configuration Guide](CONFIGURATION.md) - Pair with your Allow2 account
 - [Use Cases](USE_CASES.md) - Real-world automation examples

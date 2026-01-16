@@ -1,0 +1,15 @@
+# Code owners for Allow2 Home Assistant integration
+# These owners will be requested for review when someone opens a pull request.
+
+# Default owners for everything in the repo
+* @Allow2/maintainers
+
+# Custom component specific ownership
+/custom_components/allow2/ @Allow2/maintainers
+
+# GitHub workflow files
+/.github/ @Allow2/maintainers
+
+# Documentation
+/docs/ @Allow2/maintainers
+*.md @Allow2/maintainers

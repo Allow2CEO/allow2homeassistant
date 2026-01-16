@@ -1,0 +1,133 @@
+---
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  python-lint:
+    name: Python Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy homeassistant-stubs aiohttp
+
+      - name: Run Ruff linter
+        run: |
+          ruff check custom_components/allow2/ --output-format=github
+
+      - name: Run Ruff formatter check
+        run: |
+          ruff format --check custom_components/allow2/
+
+      - name: Run mypy type checking
+        run: |
+          mypy custom_components/allow2/ --ignore-missing-imports --no-error-summary || true
+
+  validate-manifest:
+    name: Validate manifest.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate manifest.json
+        run: |
+          python3 -c "
+          import json
+          import sys
+
+          required_keys = ['domain', 'name', 'version', 'documentation', 'requirements']
+
+          with open('custom_components/allow2/manifest.json', 'r') as f:
+              manifest = json.load(f)
+
+          missing_keys = [key for key in required_keys if key not in manifest]
+          if missing_keys:
+              print(f'Missing required keys: {missing_keys}')
+              sys.exit(1)
+
+          # Validate version format
+          version = manifest.get('version', '')
+          parts = version.split('.')
+          if len(parts) < 2:
+              print(f'Invalid version format: {version}')
+              sys.exit(1)
+
+          print('manifest.json is valid')
+          print(f'  Domain: {manifest.get(\"domain\")}')
+          print(f'  Name: {manifest.get(\"name\")}')
+          print(f'  Version: {manifest.get(\"version\")}')
+          "
+
+  validate-strings:
+    name: Validate strings.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate strings.json
+        run: |
+          python3 -c "
+          import json
+          import sys
+
+          try:
+              with open('custom_components/allow2/strings.json', 'r') as f:
+                  strings = json.load(f)
+              print('strings.json is valid JSON')
+
+              # Check for config_flow section if config_flow is enabled
+              with open('custom_components/allow2/manifest.json', 'r') as f:
+                  manifest = json.load(f)
+
+              if manifest.get('config_flow', False):
+                  if 'config' not in strings:
+                      print('Warning: config_flow enabled but no config section in strings.json')
+                  else:
+                      print('  Config flow strings: present')
+          except json.JSONDecodeError as e:
+              print(f'Invalid JSON in strings.json: {e}')
+              sys.exit(1)
+          "
+
+  hacs-validation:
+    name: HACS Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: HACS Action
+        uses: hacs/action@main
+        with:
+          category: integration
+
+  hassfest:
+    name: Hassfest Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master

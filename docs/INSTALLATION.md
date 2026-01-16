@@ -12,13 +12,9 @@ Before installing **allow2homeassistant**, ensure you have:
    - Sign up at https://allow2.com
    - Set up at least one child profile
    - Configure quotas and activities
+   - Know your login credentials (email and password)
 
-3. **Allow2 API Key**
-   - Log in to Allow2 web portal
-   - Navigate to Settings → API Access
-   - Generate a new API key (keep it secure!)
-
-4. **(Optional) HACS Installed**
+3. **(Optional) HACS Installed**
    - For easier installation and updates
    - Install from https://hacs.xyz
 
@@ -150,36 +146,40 @@ Follow same steps as HACS installation (Settings → Devices & Services → Add 
 3. Search for **"Allow2"**
 4. Click **Allow2 Parental Controls**
 
-### Step 2: Enter API Credentials
+### Step 2: Enter Credentials
 
 The configuration UI will prompt for:
 
 **Required:**
-- **API Key**: Your Allow2 parent account API key
-  - Get this from https://allow2.com → Settings → API Access
-  - Looks like: `ak_1234567890abcdef1234567890abcdef`
+- **Email**: Your Allow2 parent account email address
+- **Password**: Your Allow2 account password
 
 **Optional:**
-- **Update Interval**: How often to refresh child data (default: 30 minutes)
-- **Cache Duration**: How long to cache quota responses (default: 5 minutes)
+- **Device Token**: Override the default device token (advanced users only)
+  - Default: `mtG8xbFR1cuJkuXn`
+- **Device Name**: How this Home Assistant instance appears in your Allow2 account
+  - Default: `Home Assistant`
 
 Example configuration:
 ```
-API Key: ak_1234567890abcdef1234567890abcdef
-Update Interval: 30 (minutes)
-Cache Duration: 5 (minutes)
+Email: parent@example.com
+Password: ********
+Device Name: Home Assistant (leave default)
 ```
 
-### Step 3: Validate Connection
+> **Note:** Your email and password are only used during the initial pairing process. They are NOT stored after pairing is complete. Only the pairing tokens are retained.
+
+### Step 3: Device Pairing
 
 The integration will:
-1. Test connection to Allow2 API
-2. Validate API key
-3. Fetch list of children
-4. Display success message
+1. Connect to Allow2 API using your credentials
+2. Pair this Home Assistant instance as a device to your account
+3. Retrieve your list of children
+4. Store the pairing tokens securely
+5. Display success message
 
-If validation fails, check:
-- API key is correct (no extra spaces)
+If pairing fails, check:
+- Email and password are correct
 - Internet connection is working
 - Allow2 service is available (status.allow2.com)
 
@@ -292,15 +292,15 @@ HACS will notify you when updates are available:
 4. Clear browser cache and refresh
 5. Check logs for loading errors
 
-### API Key Invalid
+### Invalid Credentials
 
-**Problem**: "Invalid API key" error during setup.
+**Problem**: "Invalid credentials" or "auth_failed" error during setup.
 
 **Solutions**:
-1. Verify API key from Allow2 web portal
+1. Verify email and password are correct
 2. Check for extra spaces or characters
-3. Ensure API key starts with "ak_"
-4. Try generating a new API key
+3. Try logging in to https://allow2.com to verify credentials work
+4. Reset password if forgotten
 5. Verify Allow2 account is active
 
 ### Connection Timeout
@@ -330,7 +330,7 @@ HACS will notify you when updates are available:
 
 **Solutions**:
 1. Verify children exist in Allow2 web portal
-2. Check API key has access to child profiles
+2. Ensure your account has child profiles configured
 3. Try refreshing integration (reload)
 4. Check Allow2 account has active subscription
 
@@ -364,12 +364,12 @@ To remove the integration:
 
 ## Security Notes
 
-### API Key Security
+### Credential Security
 
-- **Never share** your Allow2 API key
-- **Don't commit** API key to version control
-- **Store securely** in Home Assistant (automatic via config flow)
-- **Regenerate** if compromised
+- **Credentials are NOT stored** - Email and password are only used during initial pairing
+- **Only tokens are retained** - `userId`, `pairId`, and `pairToken` are stored securely
+- **Re-pair if compromised** - If you suspect tokens are compromised, remove and re-add the integration
+- **Change Allow2 password** if needed - This will invalidate existing pairings
 
 ### Network Security
 
@@ -405,7 +405,15 @@ If you encounter issues:
 
 ## Advanced Configuration
 
-### Multiple API Keys (Multi-Parent Households)
+### Multiple Home Assistant Instances
+
+If you have multiple Home Assistant instances:
+
+1. Use unique device names for each instance (e.g., "Home Assistant - Main", "Home Assistant - Vacation Home")
+2. All instances can pair with the same Allow2 account
+3. Each instance creates its own set of sensors
+
+### Multiple Allow2 Accounts (Multi-Parent Households)
 
 Currently not supported. Future feature may allow:
 - Multiple Allow2 accounts

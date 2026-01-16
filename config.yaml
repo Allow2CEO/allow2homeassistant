@@ -1,0 +1,76 @@
+# Home Assistant Add-on Configuration
+# Allow2 - Parental Controls Integration
+# https://github.com/Allow2/allow2homeassistant
+
+name: Allow2
+version: "1.0.0"
+slug: allow2
+description: >-
+  Parental controls integration with Allow2 service. Manage screen time,
+  activity allowances, and monitor usage for children. Supports automatic
+  device pairing and real-time activity checking.
+url: https://github.com/Allow2/allow2homeassistant
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+startup: application
+boot: auto
+init: false
+
+# Map Home Assistant config directory to access custom_components
+map:
+  - config:rw
+
+# Add-on options configurable by users
+options:
+  log_level: info
+  update_interval: 300
+  copy_on_start: true
+
+# Schema for validating user options
+schema:
+  log_level: list(debug|info|warning|error|critical)
+  update_interval: int(60,3600)
+  copy_on_start: bool
+
+# Container image configuration
+image: ghcr.io/allow2/allow2homeassistant-{arch}
+
+# Ports (none required - uses Home Assistant internal communication)
+ports: {}
+ports_description: {}
+
+# Resource requirements
+host_network: false
+host_pid: false
+host_dbus: false
+privileged: []
+apparmor: true
+
+# Labels
+panel_icon: mdi:account-child
+panel_title: Allow2
+panel_admin: true
+
+# Environment variables passed to container
+environment:
+  ALLOW2_LOG_LEVEL: "%(log_level)s"
+  ALLOW2_UPDATE_INTERVAL: "%(update_interval)s"
+
+# Discovery (for auto-detection)
+discovery: []
+
+# Services provided by this add-on
+services: []
+
+# Add-on stage
+stage: stable
+
+# Watchdog for automatic restart on failure
+watchdog: tcp://[HOST]:[PORT:8099]
+
+# Advanced options
+advanced: false

@@ -1,0 +1,102 @@
+# English Translations for Allow2 Home Assistant Add-on
+# Configuration options and descriptions
+
+configuration:
+  log_level:
+    name: Log Level
+    description: >-
+      Set the logging verbosity level for the Allow2 add-on. Debug provides
+      the most detailed output for troubleshooting, while error only shows
+      critical issues.
+
+  update_interval:
+    name: Update Interval
+    description: >-
+      How often (in seconds) to check that the integration files are properly
+      installed. Lower values provide faster detection of issues but increase
+      resource usage. Default is 300 seconds (5 minutes).
+
+  copy_on_start:
+    name: Copy on Start
+    description: >-
+      Automatically copy the Allow2 integration files to Home Assistant's
+      custom_components directory when the add-on starts. Disable this if
+      you prefer to manage the integration files manually.
+
+# Network configuration (if applicable)
+network:
+  8099/tcp: Health Check Port
+
+# Add-on information
+addon:
+  name: Allow2
+  description: >-
+    Allow2 is a comprehensive parental control service that helps manage
+    screen time and activity allowances for children. This add-on integrates
+    Allow2 with Home Assistant, allowing you to:
+
+    - Monitor screen time usage across all devices
+    - Set and enforce time limits for various activities
+    - Create binary sensors for activity allowances
+    - Automate actions based on whether activities are allowed
+
+  documentation: >-
+    For detailed setup instructions and configuration options, please visit
+    the official documentation at https://github.com/Allow2/allow2homeassistant
+
+  support: >-
+    For support and bug reports, please open an issue at
+    https://github.com/Allow2/allow2homeassistant/issues
+
+# Setup instructions
+setup:
+  step1:
+    title: Install the Add-on
+    description: Install the Allow2 add-on from the Home Assistant Add-on Store.
+
+  step2:
+    title: Start the Add-on
+    description: >-
+      Start the add-on to automatically install the Allow2 integration
+      into Home Assistant's custom_components directory.
+
+  step3:
+    title: Restart Home Assistant
+    description: >-
+      Restart Home Assistant to load the newly installed Allow2 integration.
+
+  step4:
+    title: Add the Integration
+    description: >-
+      Go to Settings > Devices & Services, click "+ Add Integration",
+      search for "Allow2", and follow the setup wizard to connect your
+      Allow2 account.
+
+  step5:
+    title: Configure Automations
+    description: >-
+      Use the sensors and binary sensors created by the integration to
+      build automations that respond to your children's activity allowances.
+
+# Troubleshooting
+troubleshooting:
+  integration_not_found:
+    title: Integration Not Found
+    description: >-
+      If the Allow2 integration doesn't appear in Home Assistant after
+      installation, ensure the add-on is running and check the add-on logs
+      for any errors. You may need to restart Home Assistant.
+
+  connection_errors:
+    title: Connection Errors
+    description: >-
+      If you see connection errors when setting up the integration, verify
+      that your Allow2 credentials are correct and that Home Assistant
+      can reach the internet. Check your network configuration.
+
+  missing_children:
+    title: Missing Children
+    description: >-
+      If your children don't appear after setup, ensure they are properly
+      configured in your Allow2 account at allow2.com. The integration
+      automatically discovers all children linked to your account.

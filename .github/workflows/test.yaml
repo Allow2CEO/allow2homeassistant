@@ -1,0 +1,94 @@
+---
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  pytest:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio pytest-cov pytest-homeassistant-custom-component
+          pip install aiohttp homeassistant
+
+      - name: Install integration
+        run: |
+          pip install -e .
+        continue-on-error: true
+
+      - name: Run tests
+        run: |
+          if [ -d "tests" ]; then
+            pytest tests/ \
+              --cov=custom_components/allow2 \
+              --cov-report=xml \
+              --cov-report=term-missing \
+              -v
+          else
+            echo "No tests directory found - skipping pytest"
+          fi
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Home Assistant
+        run: |
+          pip install homeassistant
+
+      - name: Test integration loads
+        run: |
+          python3 -c "
+          import sys
+          sys.path.insert(0, '.')
+
+          # Verify module can be imported
+          from custom_components.allow2 import const
+          from custom_components.allow2 import api
+
+          print('Integration modules load successfully!')
+          print(f'  Domain: {const.DOMAIN}')
+          print(f'  API Base URL: {const.API_BASE_URL}')
+          "

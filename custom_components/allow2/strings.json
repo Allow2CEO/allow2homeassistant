@@ -1,0 +1,58 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Allow2",
+        "description": "Enter your Allow2 account credentials to pair this Home Assistant instance. The default device token is for Home Assistant integration (vid=21588). Only change it if you have a custom device token.",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "device_token": "Device Token (optional)",
+          "device_name": "Device Name (optional)"
+        },
+        "data_description": {
+          "email": "Your Allow2 account email address",
+          "password": "Your Allow2 account password",
+          "device_token": "Custom device token (leave default unless instructed otherwise)",
+          "device_name": "Name to identify this Home Assistant instance in Allow2"
+        }
+      }
+    },
+    "error": {
+      "auth_failed": "Invalid email or password. Please check your credentials.",
+      "cannot_connect": "Unable to connect to Allow2. Please check your internet connection.",
+      "invalid_response": "Received an invalid response from Allow2. Please try again.",
+      "unknown": "An unexpected error occurred. Please check the logs for details.",
+      "already_paired": "This email is already configured in Home Assistant."
+    },
+    "abort": {
+      "already_configured": "This Allow2 account is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Allow2 Options",
+        "description": "Update your Allow2 integration settings.",
+        "data": {
+          "device_name": "Device Name"
+        },
+        "data_description": {
+          "device_name": "Name to identify this Home Assistant instance in Allow2"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "remaining_time": {
+        "name": "{child_name} {activity_name} Remaining"
+      }
+    },
+    "binary_sensor": {
+      "activity_allowed": {
+        "name": "{child_name} {activity_name} Allowed"
+      }
+    }
+  }
+}

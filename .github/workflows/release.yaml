@@ -1,0 +1,94 @@
+---
+name: Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  release-info:
+    name: Gather release information
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+  validate-version:
+    name: Validate version consistency
+    needs: release-info
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check manifest version matches release
+        run: |
+          MANIFEST_VERSION=$(python3 -c "import json; print(json.load(open('custom_components/allow2/manifest.json'))['version'])")
+          RELEASE_VERSION="${{ needs.release-info.outputs.version }}"
+
+          echo "Manifest version: ${MANIFEST_VERSION}"
+          echo "Release version: ${RELEASE_VERSION}"
+
+          if [ "${MANIFEST_VERSION}" != "${RELEASE_VERSION}" ]; then
+            echo "::error::Version mismatch! manifest.json has ${MANIFEST_VERSION}, but release is ${RELEASE_VERSION}"
+            exit 1
+          fi
+
+          echo "Version validation passed!"
+
+  create-hacs-release:
+    name: Create HACS release archive
+    needs:
+      - release-info
+      - validate-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create release archive for HACS
+        run: |
+          VERSION="${{ needs.release-info.outputs.version }}"
+
+          # Create a clean archive of the custom component
+          cd custom_components
+          zip -r "../allow2-${VERSION}.zip" allow2 \
+            -x "allow2/__pycache__/*" \
+            -x "allow2/*.pyc"
+
+          # Also create a tar.gz for those who prefer it
+          tar --exclude='__pycache__' \
+              --exclude='*.pyc' \
+              -czvf "../allow2-${VERSION}.tar.gz" allow2
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            allow2-${{ needs.release-info.outputs.version }}.zip
+            allow2-${{ needs.release-info.outputs.version }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-hacs-default:
+    name: Notify HACS
+    needs:
+      - create-hacs-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify completion
+        run: |
+          echo "Release ${{ github.event.release.tag_name }} published successfully!"
+          echo ""
+          echo "Users can now install/update via HACS or manually download:"
+          echo "  - ZIP: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/allow2-${{ needs.release-info.outputs.version }}.zip"
+          echo "  - TAR.GZ: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/allow2-${{ needs.release-info.outputs.version }}.tar.gz"

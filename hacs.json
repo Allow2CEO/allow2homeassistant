@@ -1,0 +1,8 @@
+{
+  "name": "Allow2",
+  "render_readme": true,
+  "country": ["AU", "US", "GB", "NZ", "CA"],
+  "homeassistant": "2024.1.0",
+  "zip_release": true,
+  "filename": "allow2.zip"
+}
