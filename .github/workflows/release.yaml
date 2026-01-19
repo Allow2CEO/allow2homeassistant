@@ -71,7 +71,7 @@ jobs:
               -czvf "../allow2-${VERSION}.tar.gz" allow2
 
       - name: Upload release assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             allow2-${{ needs.release-info.outputs.version }}.zip
